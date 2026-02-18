@@ -1,0 +1,64 @@
+# =============================================================================
+# CustomAgentDemo - Message keyword check (Happy)
+# =============================================================================
+#
+# WHAT THIS AGENT DOES:
+# - User says hello/hi → agent asks the user to enter a message.
+# - User sends a message → agent checks if the word "Happy" is present in that message.
+# - If "Happy" is present: tell the user "The word 'Happy' is present in your message."
+# - If not present: tell the user "The word 'Happy' is not present in your message."
+#
+#
+# =============================================================================
+
+config:
+   agent_name: "CustomAgentDemo"
+   agent_label: "CustomAgentDemo"
+   agent_type: "AgentforceEmployeeAgent"
+   description: "Asks for a message and checks if the word Happy is present"
+
+variables:
+   custom_message: mutable string = "Welcome to the world of Agent Script"
+      description: "Intro line shown before asking for a message"
+   user_message: mutable string = ""
+      description: "The message entered by the user, checked for the keyword Happy"
+
+system:
+   messages:
+      welcome: "Hi! How can I help you today?"
+      error: "Sorry, something went wrong."
+
+   instructions: "You are a friendly assistant. Ask the user to enter a message, then check if the word Happy is in it and report the result."
+
+start_agent topic_selector:
+   description: "Route to the message-check topic for every user message."
+
+   reasoning:
+      instructions:|
+         You MUST use the start_message_check tool for every user message.
+         - User said hello/hi/hey or any greeting: use start_message_check.
+         - User sent any other message: use start_message_check so the topic can save it and check for the word Happy.
+      actions:
+         start_message_check: @utils.transition to @topic.message_check
+            description: "Go to message check topic. Use for hello/hi or when user sends a message to be checked."
+
+topic message_check:
+   description: "Asks user to enter a message, then checks if the word Happy is present in it"
+
+   reasoning:
+      instructions:->
+         | {!@variables.custom_message}
+
+         if not @variables.user_message:
+            | Ask the user to enter a message (any message). Do not ask for their name.
+              When they send a message, use the set_user_message action to save it.
+
+         if @variables.user_message:
+            | The user's message is: "{!@variables.user_message}".
+              Check whether the word "Happy" appears in the message (treat "Happy", "happy", "HAPPY" as the same word).
+              If the word Happy (any case) is present, tell the user exactly: "The word 'Happy' is present in your message."
+              If the word Happy is not present, tell the user exactly: "The word 'Happy' is not present in your message."
+
+      actions:
+         set_user_message: @utils.setVariables
+            with user_message=...
