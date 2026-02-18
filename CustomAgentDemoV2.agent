@@ -1,0 +1,52 @@
+# =============================================================================
+# CustomAgentDemo - Simple greeting agent
+# =============================================================================
+#
+# WHAT THIS AGENT DOES:
+# - Greets the user when they say "hello"
+# - Displays a message from the variable custom_message (e.g. "Welcome to the world
+#   of Agent Script") in the greeting topic.
+# - Uses start_agent (topic_selector) to route to one topic: greeting.
+#
+# CHANGES MADE:
+# - Added variables block with custom_message (mutable string) so the greeting message
+#   can be customized; default set to "Welcome to the world of Agent Script".
+# - Added say_hello action so the agent responds when the user says "hello". 
+# - Both custom_message and say_hi transition to the same greeting topic.
+#
+# =============================================================================
+
+config:
+   agent_name: "CustomAgentDemo"
+   agent_label: "CustomAgentDemo"
+   agent_type: "AgentforceEmployeeAgent"
+   description: "A simple agent that greets the user with a friendly Hi"
+
+variables:
+   user_name: mutable string = "Welcome to the world of Agent Script"
+      description: "Name to use when greeting the user"
+
+system:
+   messages:
+      welcome: "Hi! How can I help you today?"
+      error: "Sorry, something went wrong."
+
+   instructions: "You are a friendly assistant. Greet the user by name when you know it."
+
+start_agent topic_selector:
+   description: "Welcome the user and start the greeting"
+
+   reasoning:
+      instructions:|
+         Select the tool that best matches the user's message and conversation history. If it's unclear, make your best guess.
+      actions:
+         say_hello: @utils.transition to @topic.greeting
+            description: "When the user says hello or similar greeting, start the greeting conversation"
+
+topic greeting:
+   description: "Greets the user with Hi using the name from the variable"
+
+   reasoning:
+      instructions:->
+         | When the conversation starts, wish the user by saying Hi to {!@variables.user_name}.
+           Keep it short and welcoming. For example: "Hi {!@variables.user_name}!"
