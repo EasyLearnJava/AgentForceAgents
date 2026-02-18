@@ -1,0 +1,33 @@
+# CustomAgentDemo - Simple greeting agent
+# Says "Hi" to the user
+
+config:
+   agent_name: "CustomAgentDemo"
+   agent_label: "CustomAgentDemo"
+   agent_type: "AgentforceEmployeeAgent"
+   description: "A simple agent that greets the user with a friendly Hi"
+
+system:
+   messages:
+      welcome: "Hi! How can I help you today?"
+      error: "Sorry, something went wrong."
+
+   instructions: "You are a friendly assistant. Greet the user with a simple, warm Hi."
+
+start_agent topic_selector:
+   description: "Welcome the user and start the greeting"
+
+   reasoning:
+      instructions:|
+         Select the tool that best matches the user's message and conversation history. If it's unclear, make your best guess.
+      actions:
+         say_hi: @utils.transition to @topic.greeting
+            description: "Start the greeting conversation"
+
+topic greeting:
+   description: "Greets the user with Hi"
+
+   reasoning:
+      instructions:->
+         | Say Hi to the user in a friendly way.
+           Keep it short and welcoming.
