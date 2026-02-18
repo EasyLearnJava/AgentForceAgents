@@ -1,0 +1,63 @@
+# =============================================================================
+# CustomAgentDemo - Simple greeting agent
+# =============================================================================
+#
+# WHAT THIS AGENT DOES:
+# - Greets the user when they say "hello", "hi", "hey", or similar.
+# - Asks the user for their name, then wishes them using that name.
+# - Uses start_agent (topic_selector) to route to one topic: greeting.
+#
+# CHANGES MADE:
+# - Added variables: custom_message (intro text), user_name (collected from user).
+# - Agent now asks for the user's name first; uses set_user_name (setVariables) to
+#   store it, then greets the user with "Hi <user_name>!" once the name is known.
+#
+# =============================================================================
+
+config:
+   agent_name: "CustomAgentDemo"
+   agent_label: "CustomAgentDemo"
+   agent_type: "AgentforceEmployeeAgent"
+   description: "A simple agent that greets the user with a friendly Hi"
+
+variables:
+   custom_message: mutable string = "Welcome to the world of Agent Script"
+      description: "Intro or welcome line shown before asking for name"
+   user_name: mutable string = ""
+      description: "The user's name, collected from the conversation"
+
+system:
+   messages:
+      welcome: "Hi! How can I help you today?"
+      error: "Sorry, something went wrong."
+
+   instructions: "You are a friendly assistant. Greet the user by name when you know it."
+
+start_agent topic_selector:
+   description: "Welcome the user and start the greeting"
+
+   reasoning:
+      instructions:|
+         Select the tool that best matches the user's message and conversation history. If it's unclear, make your best guess.
+      actions:
+         start_greeting: @utils.transition to @topic.greeting
+            description: "When the user says hello, hi, hey, or any other casual greeting, start the greeting conversation"
+
+topic greeting:
+   description: "Asks for the user's name, then greets them by name"
+
+   reasoning:
+      instructions:->
+         | {!@variables.custom_message}
+
+         if not @variables.user_name:
+            | Ask the user for their name in a friendly way.
+              When they provide their name, use the set_user_name action to save it.
+         else:
+            | The user's name is {!@variables.user_name}. Wish them by name:
+              say something like "Hi {!@variables.user_name}! Great to meet you."
+              Keep it short and welcoming.
+
+      actions:
+         set_user_name: @utils.setVariables
+            with user_name=...
